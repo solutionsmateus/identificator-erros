@@ -1,8 +1,9 @@
 import os
+import glob
+from google import genai
 import google.generativeai as genai
 from google.generativeai import GenerativeModel
 from dotenv import load_dotenv
-
 
 env = load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
