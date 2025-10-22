@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as py
 from openpyxl import Workbook
+from openpyxl.styles import Font, NamedStyle
 import zipfile
 import os
 import glob
@@ -19,7 +20,9 @@ supermarkets = {
     "Novo Atacarejo"
 }
 
-campanhas = df['Rows'] = ['A2' * 'J2'] * ['A10500' * 'J100500']
+#Definition of Columns
+rows = pd.DataFrame['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2' * 'A10500', 'B100500', 'C100500', 'D100500', 'E100500', 'F100500', 'G100500', 'H100500', 'I100500', 'J100500', 'K100500']
+
 
 column_supermarket = df['Column1'] = ['A1']
 column_data = df['Column2'] = ['B1']
@@ -33,6 +36,52 @@ column_app = df['Column9'] = ['I1']
 column_cidade = df['Column10'] = ['I1']
 column_estado = df['Column11'] = ['K1']
 
+#Definition of Rows
+
+rows_supermarkets = {
+    "Assaí Atacadista",
+    "Atacadão",
+    "Novo-Atacarejo",
+    "Frangolandia", 
+    "Cometa-Supermercados",
+    "Atakarejo",
+    "Gbarbosa"
+}
+
+rows_cidade = {
+    "Recife",
+    "São Luís",
+    "Fortaleza",
+    "Vitória da Conquista",
+    "Belém",
+    "João Pessoa",
+    "Teresina",
+    "Aracaju",
+    "Macéio"
+}
+
+rows_estado = {
+    "PERNAMBUCO",
+    "MARANHÃO",
+    "CEARÁ",
+    "BAHIA",
+    "PARÁ",
+    "PARAÍBA",
+    "PIAUÍ",
+    "SERGIPE",
+    "ALAGOAS"
+}
+
+rows_data = NamedStyle(name='date_style', number_format='DD/MM - DD/MM' or 'DD/MM')
+rows_dataincio = NamedStyle(name='data_inicio_syle', number_format='DD/MM')
+rows_datafim = NamedStyle(name='data_fim_style', number_format='DD/MM')
+rows_campanha = NamedStyle(name='campanha', text_format='{strtext: 1-20}')
+rows_categoriaproduto = NamedStyle(name='categoriaproduto', text_format='{strtext: 1-20}')
+rows_preço = NamedStyle(name='preços', text_format='{strtext: 1-30}')
+rows_app = NamedStyle(name='app_format', number_format='R$XXXX.XX')
+rows_cidade = NamedStyle(name='cidade_format', text_format='{strtext: 1-20}')
+rows_estado = NamedStyle(name='estado_format', text_format='{strtext: 1-20}')
+
 #Unzip all folders of Downloaded Artifacts
 
 def unzip_folders():
@@ -45,6 +94,8 @@ def unzip_folders():
             extract_directory = os.path.join(os.path.dirname (zip_path))
             zip_ref.extractall(file_paths)
             print(f"Encontrando as pastas {zip_path}, to {extract_directory}")
+
+unzip_folders()
 
 #Check if the Columns is on Defalut Configuration           
 def syscheck():
@@ -75,6 +126,7 @@ def syscheck():
     else:
         print("All columns are Error, Please Review your Spreadsheet Again")
             
+syscheck()
 
 #Duplicates and erros in spreadsheet
 def duplicate():    
@@ -94,11 +146,23 @@ def duplicate():
         df.append(column_data)
     
     if column_data == column_data:
-        print("Colunas na planilha estão corretas.")    
+        print("Colunas na planilha estão corretas.")
 
-try:
-    duplicate()
-    syscheck()
-    unzip_folders()
-except:
-    print("Not possible to process all functions")
+duplicate()
+#Analysis Error on Space and Filled on Spreadsheet
+
+def analysis_error_sf():
+    rows = pd['Rows, =!']
+    if df != df:
+        return "File different, Please return another file"
+    for i in rows:
+            if i == 0:
+                return "Any rows enconter, Please update your spreadsheet again"
+    
+    return "Not possible do to the analysis error."
+
+analysis_error_sf()
+
+#Analysis Error 
+
+print("All functions executable.")
