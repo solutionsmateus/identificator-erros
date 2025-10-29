@@ -71,20 +71,17 @@ jobs:
     needs: identificator_ocr 
     
     env:
-      ARTIFACT_FOLDER: ./ocr-vm-downloaded # Diretório de download
-      VERIFIER_SCRIPT: artifact_verifier.py
-      # O ARTIFACT_NAME_TO_DOWNLOAD usa o input, mas usa o nome padrão se não for fornecido
-      ARTIFACT_NAME_TO_DOWNLOAD: ${{ github.event.inputs.artifact_name || 'ocr-vm-results' }}
-      # A run_id usa o input. Se estiver vazio (no caso de schedule/push), usa o id da execução que acabou de rodar (needs: identificator_ocr)
+      ARTIFACT_FOLDER: ./workflow-github-action # Diretório de download
+      VERIFIER_SCRIPT: identificator_complete.py
+      ARTIFACT_NAME_TO_DOWNLOAD: ${{ github.event.inputs.artifact_name || 'identificator_complete.py' }}
       RUN_ID_TO_DOWNLOAD: ${{ github.event.inputs.workflow_run_id || github.run_id }}
-
 
     steps:
       - name: Checkout do Código (Para pegar o script verifier)
         uses: actions/checkout@v4
         
       # 1. Baixa o Artefato Gerado no Job Anterior
-      - name: Baixar Artefato Gerado (ID: ${{ env.RUN_ID_TO_DOWNLOAD }})
+      - name: Baixar Artefato Gerado
         uses: dawidd6/action-download-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME_TO_DOWNLOAD }}
