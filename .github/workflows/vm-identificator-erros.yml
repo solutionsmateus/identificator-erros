@@ -1,4 +1,4 @@
-name: vm-identificator-erros
+name: VM Identificator e Verificador de Artefatos
 
 on:
   push:
@@ -6,49 +6,106 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      workflow_run_id:
+        description: 'ID da execução para baixar artefato (apenas Job de Verificação)'
+        required: false
+        default: ''
+      artifact_name:
+        description: 'Nome do Artefato a ser baixado'
+        required: false
+        default: 'ocr-vm-results' 
   schedule:
-    # Runs at 10:00 UTC every day
-    - cron: '0 10 * * *'  
+    - cron: '0 10 * * *'
 
 jobs:
-  build:
+  identificator_ocr:
     runs-on: windows-latest
     
     env:
-      # This secret MUST be set in your repository: 
-      # Settings > Secrets and variables > Actions > New repository secret
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      
-      # These environment variables are available to your scripts
-      OUTPUT_DIR: ${{ github.workspace }}/Encartes
+      ARTIFACT_NAME: ocr-vm-results 
+      OUTPUT_DIR: ${{ github.workspace }}/Encartes_Output # Diretório onde o identificator_complete.py deve salvar os arquivos
       HTTP_UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5.0 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
       
     strategy:
       matrix:
         scripts:
-         - identificator_complete.py
+          - identificator_complete.py
 
     steps:
-      # Step 1: Check out your repository's code
-      - name: Check out repository
-        uses: actions/checkout@v4 # Corrected typo 'chechout'
+      - name: Checkout do Código
+        uses: actions/checkout@v4
 
-      # Step 2: Set up a Python version
-      - name: Set up Python 3.10
+      - name: Configurar Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip' # Caches dependencies to speed up future runs
+          cache: 'pip'
           
-      # Step 3: Install your project's dependencies
-      - name: Install dependencies
+      - name: Instalar Dependências (Geração)
         run: |
           python -m pip install --upgrade pip
-          # These are the libraries imported in your two .py files
+          # Dependências necessárias para o identificator_complete.py + pandas/numpy
           pip install pandas numpy openpyxl google-generativeai python-dotenv
-        shell: pwsh # Use PowerShell on the Windows runner
 
-      # Step 4: Run the Python script from the matrix
-      - name: Run ${{ matrix.scripts }}
-        run: python ${{ matrix.scripts }}
-        shell: pwsh
+      # Assegura que o diretório de saída exista
+      - name: Criar Diretório de Saída
+        run: mkdir -p ${{ env.OUTPUT_DIR }} 
+
+      - name: Executar ${{ matrix.scripts }} (Geração de Planilhas)
+        run: python ${{ matrix.scripts }} 
+
+      # NOVO PASSO: Criar o Artefato (pasta com as planilhas)
+      - name: Upload de Artefato de Resultados
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }} # Usa o nome definido acima: ocr-vm-results
+          path: ${{ env.OUTPUT_DIR }} # Pasta que contém as planilhas/arquivos gerados
+          retention-days: 7
+          if-no-files-found: error # Se o script não gerar a pasta, o job falha
+
+
+  verify_artifacts:
+    runs-on: windows-latest
+    needs: identificator_ocr 
+    
+    env:
+      ARTIFACT_FOLDER: ./ocr-vm-downloaded # Diretório de download
+      VERIFIER_SCRIPT: artifact_verifier.py
+      # O ARTIFACT_NAME_TO_DOWNLOAD usa o input, mas usa o nome padrão se não for fornecido
+      ARTIFACT_NAME_TO_DOWNLOAD: ${{ github.event.inputs.artifact_name || 'ocr-vm-results' }}
+      # A run_id usa o input. Se estiver vazio (no caso de schedule/push), usa o id da execução que acabou de rodar (needs: identificator_ocr)
+      RUN_ID_TO_DOWNLOAD: ${{ github.event.inputs.workflow_run_id || github.run_id }}
+
+
+    steps:
+      - name: Checkout do Código (Para pegar o script verifier)
+        uses: actions/checkout@v4
+        
+      # 1. Baixa o Artefato Gerado no Job Anterior
+      - name: Baixar Artefato Gerado (ID: ${{ env.RUN_ID_TO_DOWNLOAD }})
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT_NAME_TO_DOWNLOAD }}
+          run_id: ${{ env.RUN_ID_TO_DOWNLOAD }}
+          path: ${{ env.ARTIFACT_FOLDER }}
+
+      # 2. Configura Python
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Instalar Dependências (Verificação)
+        run: |
+          python -m pip install --upgrade pip
+          # Dependências mínimas para o artifact_verifier.py
+          pip install pandas openpyxl numpy
+
+      # 3. Descompacta e Roda a Verificação
+      - name: Executar Validação de Planilhas e Checagem de Duplicados
+        run: |
+          # O script 'artifact_verifier.py' precisa saber onde procurar
+          export ARTIFACT_FOLDER=${{ env.ARTIFACT_FOLDER }} 
+          python ${{ env.VERIFIER_SCRIPT }}
