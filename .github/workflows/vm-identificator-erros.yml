@@ -26,8 +26,7 @@ jobs:
     strategy:
       matrix:
         scripts:
-         - spreadsheet.py
-         - trainingmodel_ai.py
+         - identificator_complete.py
 
     steps:
       # Step 1: Check out your repository's code
