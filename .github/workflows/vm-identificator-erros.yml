@@ -73,7 +73,7 @@ jobs:
     env:
       ARTIFACT_FOLDER: ./workflow-github-action # Diretório de download
       VERIFIER_SCRIPT: identificator_complete.py
-      ARTIFACT_NAME_TO_DOWNLOAD: ${{ github.event.inputs.artifact_name || 'vm-solutions-mateus' }}
+      ARTIFACT_NAME_TO_DOWNLOAD: ${{ github.event.inputs.artifact_name || 'identificator_complete.py'' }}
       RUN_ID_TO_DOWNLOAD: ${{ github.event.inputs.workflow_run_id || github.run_id }}
 
     steps:
