@@ -14,7 +14,7 @@ on:
       artifact_name:
         description: 'Nome do Artefato a ser baixado'
         required: false
-        default: 'vm-solutions-mateus.yml' 
+        default: 'ocr-vm-results' 
   schedule:
     - cron: '0 10 * * *'
 
