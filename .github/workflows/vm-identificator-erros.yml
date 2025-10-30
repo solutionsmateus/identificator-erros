@@ -11,13 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-    env:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      ARTIFACT_NAME: ocr-vm-results 
-      OUTPUT_DIR: ${{ env.ARTIFACT_FOLDER }}
-      HTTP_UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5.0 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
-      
+    runs-on: windows-latest     
     strategy:
       matrix:
         scripts:
