@@ -18,8 +18,13 @@ jobs:
           - identificator_complete.py
 
     steps:
-      - name: Checkout do Código
+      - name: Checkout (repo atual)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          lfs: true
+          submodules: recursive
 
       - name: Ajustes Git no Windows (opcional)
         shell: pwsh
@@ -36,6 +41,7 @@ jobs:
           cache-dependency-cache: requirements.txt
           
       - name: Instalação Dependencias
+        shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
