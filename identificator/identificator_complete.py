@@ -115,37 +115,6 @@ def validate_spreadsheet(df: pd.DataFrame) -> bool:
     return is_valid
 
 
-def validate_files_duplicate(folder_path: str):
-    
-    print(f"\n--- Iniciando 'scroll' recursivo em: {folder_path} ---")
-
-    search_pattern = os.path.join(folder_path, "**", "*.*")
-    
-    all_files = glob.glob(search_pattern, recursive=True)
-    
-    if not all_files:
-        print("Nenhum arquivo encontrado no ARTIFACT_FOLDER.")
-        return
-
-    file_count = 0
-    
-    for file_path in all_files:
-        if os.path.isfile(file_path):
-            file_count += 1
-            print(f"[{file_count}] Encontrado: {file_path}")
-            
-            if file_path.lower().endswith(('.xlsx', '.xls', '.csv')):
-                print("Tipo de arquivo detectado: Planilha. Pronto para processamento/validação.")
-
-            
-            elif file_path.lower().endswith(('.zip')):
-                print("Tipo de arquivo detectado: ZIP.")
-            else:
-                print(">>> Tipo de arquivo detectado: Outro.")
-
-    print(f"\n--- Scroll completo. Total de {file_count} arquivos encontrados. ---")
-    return file_count
-
 
 def main():
     try:
@@ -171,3 +140,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
