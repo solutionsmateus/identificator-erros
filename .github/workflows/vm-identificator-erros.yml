@@ -12,7 +12,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    permissions: read
+    permissions:
+      contents: read
     
     env:
       OUTPUT_DIR: ${{ github.workspace }}/Encartes
