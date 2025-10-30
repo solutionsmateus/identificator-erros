@@ -1,4 +1,4 @@
-name: VM Identificator e Verificador de Artefatos
+name: vm-identificator-erros
 
 on:
   push:
@@ -6,17 +6,8 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
-    inputs:
-      workflow_run_id:
-        description: 'ID da execução para baixar artefato (apenas Job de Verificação)'
-        required: false
-        default: ''
-      artifact_name:
-        description: 'Nome do Artefato a ser baixado'
-        required: false
-        default: 'ocr-vm-results' 
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '0 14 * * *' #Todos os dias as 11:00 - MANHÃ
 
 jobs:
   identificator_ocr:
