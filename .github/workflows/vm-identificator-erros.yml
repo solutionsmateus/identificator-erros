@@ -10,13 +10,12 @@ on:
     - cron: '0 14 * * *' #Todos os dias as 11:00 - MANHÃ
 
 jobs:
-  identificator_ocr:
+  build:
     runs-on: windows-latest
-    
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       ARTIFACT_NAME: ocr-vm-results 
-      OUTPUT_DIR: ${{ github.workspace }}/Encartes_Output # Diretório onde o identificator_complete.py deve salvar os arquivos
+      OUTPUT_DIR: ${{ env.ARTIFACT_FOLDER }}
       HTTP_UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5.0 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
       
     strategy:
@@ -28,23 +27,23 @@ jobs:
       - name: Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.10
+      - name: Setup Pythom com cache (pip)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
           cache: 'pip'
+          cache-dependency: requirements.txt
           
-      - name: Instalar Dependências (Geração)
+      - name: Instalação Python + Pip com Cache
         run: |
           python -m pip install --upgrade pip
-          # Dependências necessárias para o identificator_complete.py + pandas/numpy
-          pip install pandas numpy openpyxl google-generativeai python-dotenv
+          pip install -r requirements.txt
 
       # Assegura que o diretório de saída exista
       - name: Criar Diretório de Saída
         run: mkdir -p ${{ env.OUTPUT_DIR }} 
 
-      - name: Executar ${{ matrix.scripts }} (Geração de Planilhas)
+      - name: Executar ${{ matrix.scripts }} 
         run: python ${{ matrix.scripts }} 
 
       # NOVO PASSO: Criar o Artefato (pasta com as planilhas)
@@ -55,21 +54,6 @@ jobs:
           path: ${{ env.OUTPUT_DIR }} # Pasta que contém as planilhas/arquivos gerados
           retention-days: 7
           if-no-files-found: error # Se o script não gerar a pasta, o job falha
-
-
-  verify_artifacts:
-    runs-on: windows-latest
-    needs: identificator_ocr 
-    
-    env:
-      ARTIFACT_FOLDER: ./workflow-github-action # Diretório de download
-      VERIFIER_SCRIPT: identificator_complete.py
-      ARTIFACT_NAME_TO_DOWNLOAD: ${{ github.event.inputs.artifact_name || 'identificator_complete.py'' }}
-      RUN_ID_TO_DOWNLOAD: ${{ github.event.inputs.workflow_run_id || github.run_id }}
-
-    steps:
-      - name: Checkout do Código (Para pegar o script verifier)
-        uses: actions/checkout@v4
         
       # 1. Baixa o Artefato Gerado no Job Anterior
       - name: Baixar Artefato Gerado
@@ -78,21 +62,3 @@ jobs:
           name: ${{ env.ARTIFACT_NAME_TO_DOWNLOAD }}
           run_id: ${{ env.RUN_ID_TO_DOWNLOAD }}
           path: ${{ env.ARTIFACT_FOLDER }}
-
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Instalar Dependências (Verificação)
-        run: |
-          python -m pip install --upgrade pip
-          # Dependências mínimas para o artifact_verifier.py
-          pip install pandas openpyxl numpy
-
-      # 3. Descompacta e Roda a Verificação
-      - name: Executar Validação de Planilhas e Checagem de Duplicados
-        run: |
-          # O script 'artifact_verifier.py' precisa saber onde procurar
-          export ARTIFACT_FOLDER=${{ env.ARTIFACT_FOLDER }} 
-          python ${{ env.VERIFIER_SCRIPT }}
